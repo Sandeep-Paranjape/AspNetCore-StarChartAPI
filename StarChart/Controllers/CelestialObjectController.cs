@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using StarChart.Data;
+using StarChart.Models;
 
 namespace StarChart.Controllers
 {
@@ -17,6 +18,65 @@ namespace StarChart.Controllers
             _context = context;
 
         }
+
+        [HttpPost]
+        public IActionResult Create ([FromBody]CelestialObject CO)
+        {
+            _context.CelestialObjects.Add(CO);
+            _context.SaveChanges();
+
+            return CreatedAtRoute("GetByID", new { id = CO.Id }, CO);
+        }
+
+        [HttpPut ("{id}")]
+        public IActionResult Update(int Id, CelestialObject CO)
+        {
+            var celestialObject = _context.CelestialObjects.Find(Id);
+
+            if (celestialObject == null)
+                return NotFound();
+
+            celestialObject.Name = CO.Name;
+            celestialObject.OrbitalPeriod = CO.OrbitalPeriod;
+            celestialObject.OrbitedObjectId = CO.OrbitedObjectId;
+
+            _context.CelestialObjects.Update(celestialObject);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
+        [HttpPatch ("{id}/{name}")]
+        public IActionResult RenameObject (int Id, string name)
+        {
+            var celestialObject = _context.CelestialObjects.Find(Id);
+
+            if (celestialObject == null)
+                return NotFound();
+
+            celestialObject.Name = name;
+
+            _context.Update(celestialObject);
+            _context.SaveChanges();
+
+            return NoContent();
+            
+        }
+
+        [HttpDelete ("{id}")]
+        public IActionResult Delete (int Id)
+        {
+            var celestialObject = _context.CelestialObjects.Where(x => x.OrbitedObjectId == Id || x.Id == Id).ToList();
+
+            if (celestialObject == null)
+                return NotFound();
+
+            _context.CelestialObjects.RemoveRange(celestialObject);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
 
         [HttpGet("{id:int}", Name = "GetById")]        
         public IActionResult GetById(int Id)
